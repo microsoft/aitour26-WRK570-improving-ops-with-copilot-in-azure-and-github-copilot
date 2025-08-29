@@ -1,0 +1,80 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: makeline-service-configs
+data:  
+  ORDER_DB_COLLECTION_NAME: "{{ .Values.makelineService.orderDBCollectionName }}"
+  ORDER_DB_LIST_CONNECTION_STRING_URL: "{{ .Values.makelineService.orderDBListConnectionStringsUrl }}"
+  ORDER_DB_NAME: "{{ .Values.makelineService.orderDBName }}"
+  ORDER_DB_URI: "{{ .Values.makelineService.orderDBUri }}"
+  ORDER_QUEUE_HOSTNAME: "{{ .Values.makelineService.orderQueueHost }}"
+  ORDER_QUEUE_NAME: "{{ .Values.makelineService.orderQueueName }}"
+  USE_WORKLOAD_IDENTITY_AUTH: "true"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: makeline-service
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: makeline-service
+  template:
+    metadata:
+      labels:
+        app: makeline-service
+        azure.workload.identity/use: "true"
+    spec:
+      serviceAccount: makeline-service
+      nodeSelector:
+        "kubernetes.io/os": linux
+      containers:
+      - name: makeline-service
+        image: {{ .Values.makelineService.image.repository }}:{{ .Values.makelineService.image.tag }}
+        ports:
+        - containerPort: 3001
+        envFrom:
+        - configMapRef:
+            name: makeline-service-configs
+        resources:
+          requests:
+            cpu: 1m
+            memory: 6Mi
+          limits:
+            cpu: 5m
+            memory: 20Mi
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 3001
+          failureThreshold: 10
+          periodSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3001
+          failureThreshold: 3
+          initialDelaySeconds: 3
+          periodSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3001
+          failureThreshold: 5
+          initialDelaySeconds: 3
+          periodSeconds: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: makeline-service
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 3001
+    targetPort: 3001
+  selector:
+    app: makeline-service

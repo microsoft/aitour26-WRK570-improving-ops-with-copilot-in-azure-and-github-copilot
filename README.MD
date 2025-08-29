@@ -52,28 +52,31 @@ Delete this line and everything above it!
 
 # [Microsoft AI Tour 2026](https://aitour.microsoft.com)
 
-## 🔥BRKXXX: Enhancing Operations for AI Apps with Azure Copilot and GitHub Copilot
+## 🔥WRK570: Improving Ops with Copilot in Azure and GitHub Copilot
 
 If you will be delivering this session, check the [session-delivery-sources](./session-delivery-resources/) folder for slides, scripts, and other resources.
 
 ### Session Description
 
-*Add Session Description*
+Learn how Copilot in Azure boosts app resilience by reviewing logs and streamlining ops. Get hands-on with real scenarios, and see how GitHub Copilot can enhance your build and deployment workflows.
 
 
 ### 🧠 Learning Outcomes
 
 By the end of this session, learners will be able to:
 
--  
--
--
+- Use **Copilot in Azure** to streamline operational tasks and provides actionable insights
+- Develop **Infrastructure resilience** through AI-driven recommendations
+- Guide **GitHub Copilot** to enhance CI/CD security and reduces manual configuration effort
+- Build effective prompts for **AI assistance** to accelerate both operational troubleshooting and infrastructure
+
 
 ### 💻 Technologies Used
 
-1.
-1.
-1.
+1. Copilot in Azure
+1. GitHub Copilot
+1. Azure Kubernetes Service (AKS)
+1. Azure Developer CLI
 
 ### 🔗 Session Resources
 | Resources          | Links                             | Description        |

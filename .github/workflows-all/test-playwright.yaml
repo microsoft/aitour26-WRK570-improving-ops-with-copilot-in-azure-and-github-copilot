@@ -1,0 +1,40 @@
+name: test-playwright
+
+on:
+  workflow_call:
+    inputs:
+      storeAdminUrl:
+        required: true
+        type: string
+      storeFrontUrl:
+        required: true
+        type: string
+
+jobs:
+  playwright-tests:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      - name: Azure CLI login
+        uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: tests
+
+      - name: Run Playwright tests
+        run: npx playwright test e2e/store-front/basic.spec.ts e2e/store-admin/basic.spec.ts --config=playwright.service.config.ts --workers=20
+        working-directory: tests
+        env:
+          PLAYWRIGHT_SERVICE_URL: ${{ secrets.PLAYWRIGHT_SERVICE_URL }}
+          SERVICE_STORE_ADMIN_ENDPOINT_URL: ${{ inputs.storeAdminUrl }}
+          SERVICE_STORE_FRONT_ENDPOINT_URL: ${{ inputs.storeFrontUrl }}
+          COMPANY_NAME: 'Contoso'
+          CI: true

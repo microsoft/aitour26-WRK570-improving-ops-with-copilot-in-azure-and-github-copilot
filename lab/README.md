@@ -15,8 +15,7 @@ To participate in this workshop, you will need:
 1. Your own laptop.
    * It need only be capable of running a browser and GitHub Codespaces, so almost any laptop will do.
    * A recent version of Edge, Chrome or Safari is recommended.
-2. Prerequisite #2
-3. Prerequisite #3
+2. A GitHub account (a free personal account will work)
 
 ## Get Started
 

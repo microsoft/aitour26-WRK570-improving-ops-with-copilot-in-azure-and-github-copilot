@@ -1,0 +1,50 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+name: audit-terraform
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "infra/terraform/**"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "infra/terraform/**"
+  workflow_dispatch:
+
+jobs:
+  tfsec:
+    name: Run tfsec sarif report
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Clone repo
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+
+      - name: Run Trivy vulnerability scanner in IaC mode for Terraform
+        uses: aquasecurity/trivy-action@6c175e9c4083a92bbca2f9724c8a5e33bc2d97a5 # v0.30.0
+        with:
+          scan-type: "config"
+          scan-ref: "./infra/terraform"
+          hide-progress: true
+          format: "sarif"
+          output: "trivy-terraform-results.sarif"
+          exit-code: "1"
+          ignore-unfixed: true
+          severity: "CRITICAL,HIGH"
+          trivyignores: "./infra/terraform/.trivyignore"
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@ff0a06e83cb2de871e5a09832bc6a81e7276941f # v3
+        with:
+          sarif_file: "trivy-terraform-results.sarif"

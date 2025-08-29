@@ -1,0 +1,77 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: order-service-configs
+data:  
+  USE_WORKLOAD_IDENTITY_AUTH: "true"
+  ORDER_QUEUE_HOSTNAME: "{{ .Values.orderService.queueHost }}"
+  ORDER_QUEUE_NAME: "{{ .Values.orderService.queueName }}"
+  FASTIFY_ADDRESS: "0.0.0.0"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-service
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: order-service
+  template:
+    metadata:
+      labels:
+        app: order-service
+        azure.workload.identity/use: "true"
+    spec:
+      serviceAccount: order-service
+      nodeSelector:
+        "kubernetes.io/os": linux
+      containers:
+      - name: order-service
+        image: {{ .Values.orderService.image.repository }}:{{ .Values.orderService.image.tag }}
+        ports:
+        - containerPort: 3000
+        envFrom:
+        - configMapRef:
+            name: order-service-configs
+        resources:
+          requests:
+            cpu: 1m
+            memory: 50Mi
+          limits:
+            cpu: 75m
+            memory: 128Mi
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          failureThreshold: 5
+          initialDelaySeconds: 20
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          failureThreshold: 3
+          initialDelaySeconds: 3
+          periodSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          failureThreshold: 5
+          initialDelaySeconds: 3
+          periodSeconds: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-service
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 3000
+    targetPort: 3000
+  selector:
+    app: order-service

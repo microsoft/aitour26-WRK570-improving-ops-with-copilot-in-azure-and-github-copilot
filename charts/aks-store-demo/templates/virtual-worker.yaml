@@ -1,0 +1,33 @@
+{{ if .Values.virtualWorker.create }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: virtual-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: virtual-worker
+  template:
+    metadata:
+      labels:
+        app: virtual-worker
+    spec:
+      nodeSelector:
+        "kubernetes.io/os": linux
+      containers:
+      - name: virtual-worker
+        image: {{ .Values.virtualWorker.image.repository }}:{{ .Values.virtualWorker.image.tag }}
+        env:
+        - name: MAKELINE_SERVICE_URL
+          value: http://makeline-service:3001
+        - name: ORDERS_PER_HOUR
+          value: {{ .Values.virtualWorker.ordersPerHour | quote }}
+        resources:
+          requests:
+            cpu: 1m
+            memory: 1Mi
+          limits:
+            cpu: 2m
+            memory: 20Mi
+{{ end }}

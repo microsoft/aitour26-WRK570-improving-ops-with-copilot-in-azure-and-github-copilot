@@ -1,0 +1,45 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "appEnvironment": {
+      "value": "${AZURE_ENV_NAME}"
+    },
+    "location": {
+      "value": "${AZURE_LOCATION}"
+    },
+    "aksNodePoolVMSize": {
+      "value": "${AKS_NODE_POOL_VM_SIZE}"
+    },
+    "deployAzureContainerRegistry": {
+      "value": "${DEPLOY_AZURE_CONTAINER_REGISTRY}"
+    },
+    "deployAzureServiceBus": {
+      "value": "${DEPLOY_AZURE_SERVICE_BUS}"
+    },
+    "deployObservabilityTools": {
+      "value": "${DEPLOY_OBSERVABILITY_TOOLS}"
+    },
+    "deployAzureCosmosDB": {
+      "value": "${DEPLOY_AZURE_COSMOS_DB}"
+    },
+    "cosmosDBAccountKind": {
+      "value": "${AZURE_COSMOSDB_ACCOUNT_KIND}"
+    },
+    "deployAzureOpenAI": {
+      "value": "true"
+    },
+    "azureOpenAILocation": {
+      "value": "${AZURE_OPENAI_LOCATION}"
+    },
+    "deployImageGenerationModel": {
+      "value": "${DEPLOY_AZURE_OPENAI_DALL_E_MODEL}"
+    },
+    "sourceRegistry": {
+      "value": "${SOURCE_REGISTRY}"
+    },
+    "aksAvailabilityZones": {
+      "value": "${AKS_AVAILABILITY_ZONES}"
+    }
+  }
+}

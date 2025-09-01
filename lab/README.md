@@ -4,9 +4,12 @@ These instructions are for participants of the **instructor-led** Workshop "SESS
 
 ## Lab Overview
 
-In this hands-on workshop, you’ll learn to ....
-
-If you're not a workshop participant at AI Tour, try this code yourself at ....
+In this hands-on workshop, you’ll learn to:
+* Use `azd` to deploy applications to Azure.
+* Use Copilot in Azure to build operational awareness.
+* Use Copilot in Azure to improve resilience for your environment.
+* Use Copilot in Azure to create durable automation.
+* Use GitHub Copilot to improve the build and deployment process.
 
 ## Pre-Requisites
 
@@ -19,12 +22,12 @@ To participate in this workshop, you will need:
 
 ## Get Started
 
-To get started you will need to
+To get started you will need to log into the Skillable environment.
 
 ## Discussions
 
-Build your first agent with Azure AI Agent Service is an open source project supported by Microsoft. See the [SUPPORT.md](../SUPPORT.md) file for details on how to raise issues or contribute. If you enjoyed this workshop please give the repository a ⭐ and share it with others.
+See the [SUPPORT.md](../SUPPORT.md) file for details on how to raise issues or contribute. If you enjoyed this workshop please give the repository a ⭐ and share it with others.
 
 ## Source code
 
-The source code for this session can be found in the [src folder](../src) of this repo.
+The source code for this session can be found in the [root of this repo](../).

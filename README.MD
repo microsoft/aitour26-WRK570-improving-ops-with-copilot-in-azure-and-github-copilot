@@ -32,7 +32,14 @@ By the end of this session, learners will be able to:
 
 | Resources                             | Links                       | Description                    |
 | :------------------------------------ | :-------------------------- | :----------------------------- |
-| Additional Resources for this session | https://learn.microsoft.com | Links specific to this session |
+| Microsoft Copilot in Azure Overview | https://learn.microsoft.com/azure/copilot/overview | Introduction to Microsoft Copilot in Azure - AI-powered tool to help you do more with Azure |
+| Microsoft Copilot in Azure Capabilities | https://learn.microsoft.com/azure/copilot/capabilities | Comprehensive overview of Copilot capabilities including design, operate, optimize, and troubleshoot |
+| Introduction to Microsoft Copilot in Azure Training | https://learn.microsoft.com/training/modules/introduction-microsoft-copilot-azure/ | Official Microsoft training module covering functionality and usage |
+| Work with AKS clusters efficiently using Copilot | https://learn.microsoft.com/azure/copilot/work-aks-clusters | Complete guide to using Copilot with Azure Kubernetes Service (AKS) |
+| AKS Monitoring with Copilot | https://learn.microsoft.com/azure/aks/monitor-aks | Best practices for monitoring AKS clusters, including Copilot integration |
+| Kubernetes Events for AKS Troubleshooting | https://learn.microsoft.com/azure/aks/events | Use Kubernetes events to monitor and troubleshoot issues in AKS clusters |
+| Example Prompts for Copilot in Azure | https://learn.microsoft.com/azure/copilot/example-prompts | Library of effective prompts for various Azure scenarios |
+| Writing Effective Prompts for Copilot | https://learn.microsoft.com/azure/copilot/write-effective-prompts | Tips and best practices for creating prompts that provide helpful responses |
 
 ### 📚 Continued Learning Resources
 

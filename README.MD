@@ -51,7 +51,7 @@ By the end of this session, learners will be able to:
 
 ### 🌐 Multi-Language Support
 
-_languages will go here when its time to localize_
+_Additional Languages are coming soon._
 
 ## Content Owners
 

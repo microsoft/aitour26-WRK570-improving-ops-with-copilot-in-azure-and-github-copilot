@@ -61,13 +61,14 @@ cd ./aks-store-demo
 Run both commands to authenticate:
 
 ```PowerShell-notab-nocolor
-azd auth login
+azd auth login --use-device-code
 ```
 
 > [!NOTE] This opens a browser window. Use your Azure credentials: <AZURE_USERNAME>
 
 ```PowerShell-notab-nocolor
 az login
+sudo az aks install-cli
 ```
 
 This opens a prompt for authentication.
@@ -121,16 +122,15 @@ azd config set alpha.aks.helm on
 
 There are some common overrides based on current Azure demand - if you get an error deploying, add an override based on the error from the deployment (the error will list the valid availability zones).
 
-```PowerShell-notab-nocolor
-$Overrides = @{
-  "eastus2" = @{"zones" = ("2", "3")}
-  "westus2" = @{"zones" = @("3")}
-  "eastus" = @{"zones" = ("2", "1")}
-}
+```bash-notab-nocolor
+declare -A overrides
+overrides[eastus2]="2, 1"
+overrides[westus2]="3"
+overrides[eastus]="2, 1"
 
-azd env set AZURE_RESOURCE_GROUP "<AZURE_RESOURCE_GROUP_NAME>"
+azd env set AZURE_RESOURCE_GROUP "rg-aigenius-251104"
 azd env set COMPANY_NAME "Zava"
-azd env set AZURE_LOCATION "<AZURE_LOCATION>"
+azd env set AZURE_LOCATION "eastus2"
 azd env set AKS_NODE_POOL_VM_SIZE "Standard_D2_v4"
 azd env set DEPLOY_AZURE_CONTAINER_REGISTRY "false"
 azd env set DEPLOY_AZURE_OPENAI "true"
@@ -141,10 +141,11 @@ azd env set DEPLOY_AZURE_COSMOSDB "true"
 azd env set AZURE_COSMOSDB_ACCOUNT_KIND "MongoDB"
 azd env set DEPLOY_OBSERVABILITY_TOOLS "false"
 azd env set SOURCE_REGISTRY "ghcr.io/usepowershell"
-if ($Overrides.Keys -contains '<AZURE_LOCATION>') {
-    $zones = $Overrides['<AZURE_LOCATION>'].zones -join ', '
-    azd env set AKS_AVAILABILITY_ZONES $zones
-}
+
+location="eastus2"
+if [[ -v overrides[$location] ]]; then
+    azd env set AKS_AVAILABILITY_ZONES "${overrides[$location]}"
+fi
 ```
 
 ### Step 5: Deploy Application
@@ -212,6 +213,8 @@ Navigate to <AZURE_RESOURCE_GROUP_NAME> in the browser.
 
 ```PowerShell-notab-nocolor
 https://portal.azure.com/#@<AZURE_TENANT_NAME>/resource/subscriptions/<AZURE_SUBSCRIPTION_ID>/resourceGroups/<AZURE_RESOURCE_GROUP_NAME>/overview
+
+https://portal.azure.com/#@164bdd76-e1fc-43d1-8d2d-b0c6c87ac808/resource/subscriptions/92b0d2db-6657-41a8-b1a0-9299dd0b4a6d/resourceGroups/rg-aigenius-251104/overview
 ```
 
 #### Open Copilot in Azure
@@ -223,7 +226,7 @@ Click the **Copilot** button at the top of the Azure Portal.
 **Prompt:**
 
 ```text-notab-nocolor
-Write a query that finds all changes for last 7 days.
+過去7日間のすべての変更を検索するクエリを作成してください。
 ```
 
 **Expected result:** KQL query similar to:
@@ -244,7 +247,7 @@ Go back to the resource group overview.
 **Prompt:**
 
 ```text-notab-nocolor
-Are there any service alerts impacting this resource group?
+このリソース グループに影響を与えるサービス アラートはありますか？
 ```
 
 **Expected result:** Status report showing no active alerts (assuming healthy environment).
@@ -254,7 +257,7 @@ Are there any service alerts impacting this resource group?
 **Prompt:**
 
 ```text-nocolor-notab
-What is the current health status of my AKS cluster?
+現在のAKSクラスターのhealth statusはどのようになっていますか？
 ```
 
 > [!NOTE] **Action:** Cancel when prompted to select a cluster (we'll do this from the AKS context next).
@@ -278,7 +281,7 @@ https://portal.azure.com/#@<AZURE_TENANT_NAME>/resource/subscriptions/<AZURE_SUB
 **Prompt:**
 
 ```text-nocolor-notab
-What is the current health status of my AKS cluster?
+現在のAKSクラスターのhealth statusはどのようになっていますか？
 ```
 
 **Expected result:** Health report showing passed checks for:
@@ -295,7 +298,7 @@ If Copilot asks if you want to continue troubleshooting, select "Cancel".
 **Prompt:**
 
 ```text-nocolor-notab
-List all namespaces and deployments running in this AKS cluster.
+このAKSクラスターで実行中のすべての名前空間とデプロイメントを一覧表示して
 ```
 
 **Expected result:** kubectl command suggestion with option to run via Azure Portal.
@@ -309,7 +312,7 @@ List all namespaces and deployments running in this AKS cluster.
 **Prompt:**
 
 ```text-nocolor-notab
-List all public-facing services and their exposed ports.
+公開されているすべてのサービスとその公開ポートを一覧表示する
 ```
 
 > [!NOTE] This query will be too broad. We'll refine it next.
@@ -319,7 +322,7 @@ List all public-facing services and their exposed ports.
 **Prompt:**
 
 ```text-nocolor-notab
-List all public-facing services in my aks cluster in the pets namespace and their external ip address and exposed ports.
+pets 名前空間内の私の AKS クラスターで公開されているすべてのサービス、およびそれらの外部 IP アドレスと公開ポートを一覧表示してください。
 ```
 
 **Expected result:** kubectl command for LoadBalancer services in pets namespace.
@@ -347,7 +350,7 @@ https://portal.azure.com/#@<AZURE_TENANT_NAME>/resource/subscriptions/<AZURE_SUB
 **Prompt:**
 
 ```text-nocolor-notab
-Generate a KQL query to detect failed deployments or image pull errors.
+デプロイの失敗またはイメージのプルエラーを検出するためのKQLクエリを生成する。
 ```
 
 **Expected result:** KQL query checking for failed provisioning states and deployment issues.
@@ -359,7 +362,7 @@ Go back to the AKS cluster resource.
 **Prompt:**
 
 ```text-nocolor-notab
-Show me CPU and memory usage for all pods in the pets namespace.
+pets ネームスペース内のすべてのポッドの CPU およびメモリ使用率を表示してください。
 ```
 
 **Expected result:** ++kubectl top pods -n pets++ command.
@@ -371,7 +374,7 @@ Show me CPU and memory usage for all pods in the pets namespace.
 **Prompt:**
 
 ```text-nocolor-notab
-Show me the logs for the store-admin deployment in the pets namespace
+pets ネームスペース内の store-admin デプロイメントのログを表示してください
 ```
 
 **Expected result:** Instructions to get pod name first, then view logs.
@@ -379,7 +382,7 @@ Show me the logs for the store-admin deployment in the pets namespace
 **Follow-up prompt:**
 
 ```text-nocolor-notab
-How do I get the pod name for a pod in the store-admin deployment?
+store-adminデプロイメント内のポッドのポッド名を取得するにはどうすればよいですか？
 ```
 
 > [!NOTE] Execute the suggested command, then manually construct the logs command.
@@ -389,7 +392,7 @@ How do I get the pod name for a pod in the store-admin deployment?
 **Prompt:**
 
 ```PowerShell-notab-nocolor
-Explain the liveness probe in my store front deployment
+store frontデプロイメントにおける正常性プローブについて説明してください
 ```
 
 > [!NOTE] Click **Navigate to YAML Editor** when prompted.
@@ -397,7 +400,7 @@ Explain the liveness probe in my store front deployment
 **Suggested follow-up:**
 
 ```PowerShell-notab-nocolor
-What is the purpose of a liveness probe in Kubernetes?
+Kubernetesにおける正常性プローブの目的は何ですか？
 ```
 
 > [!KNOWLEDGE] Copilot can build sample YAML files to show specific configurations.
@@ -429,7 +432,7 @@ https://portal.azure.com/#@<AZURE_TENANT_NAME>/resource/subscriptions/<AZURE_SUB
 **Prompt:**
 
 ```PowerShell-notab-nocolor
-Which Azure resources in my environment are not zone-redundant?
+私の環境において、どの Azure リソースがゾーン冗長化されていないでしょうか？
 ```
 
 **Expected result:** Query showing zone-redundancy status of resources.
@@ -449,7 +452,7 @@ https://portal.azure.com/#@<AZURE_TENANT_NAME>/resource/subscriptions/<AZURE_SUB
 **Prompt:**
 
 ```PowerShell-notab-nocolor
-How would I make this AKS cluster more resilient?
+このAKSクラスターの耐障害性を高めるにはどうすればよいですか？
 ```
 
 **Expected recommendations:**
@@ -465,7 +468,7 @@ How would I make this AKS cluster more resilient?
 **Prompt:**
 
 ```PowerShell-notab-nocolor
-How can I check if my AKS nodes are using availability zones?
+AKSノードがavailability zoneを使用しているかどうかを確認するにはどうすればよいですか？
 ```
 
 > [!NOTE] Execute the suggested ++kubectl++ command to see zone distribution.
@@ -475,13 +478,13 @@ How can I check if my AKS nodes are using availability zones?
 **Prompt:**
 
 ```PowerShell-notab-nocolor
-How do I enable availability zones for my AKS cluster?
+AKSクラスターでavailability zoneを有効にするにはどうすればよいですか？
 ```
 
 **Follow-up:**
 
 ```PowerShell-notab-nocolor
-How would I do that in Terraform?
+Terraformでそれをどう実現すればよいですか？
 ```
 
 > [!NOTE] Review the generated Terraform configuration.
@@ -507,7 +510,7 @@ https://portal.azure.com/#@<AZURE_TENANT_NAME>/resource/subscriptions/<AZURE_SUB
 **Prompt:**
 
 ```PowerShell-notab-nocolor
-Generate a Bicep configuration to deploy an AKS cluster in the East US region. The cluster should have 3 nodes using Standard_DS2_v2 VM size, enable RBAC, and integrate with Azure Monitor for logging. Include a new resource group, virtual network, and subnet. Also configure a default node pool and enable network plugin 'azure'.
+East US2リージョンにAKSクラスターを展開するためのBicep構成を生成します。クラスターはStandard_DS2_v2 VMサイズを使用する3ノードで構成し、RBACを有効化し、Azure Monitorとの統合によりログ記録を行います。新しいリソースグループ、仮想ネットワーク、サブネットを含めます。また、デフォルトノードプールを設定し、ネットワークプラグイン「azure」を有効化します。
 ```
 
 > [!NOTE] Click **Open full view** to review the complete Bicep template.
@@ -517,7 +520,7 @@ Generate a Bicep configuration to deploy an AKS cluster in the East US region. T
 **Prompt:**
 
 ```PowerShell-notab-nocolor
-Generate a Terraform configuration to deploy an AKS cluster in the East US region. The cluster should have 3 nodes using Standard_DS2_v2 VM size, enable RBAC, and integrate with Azure Monitor for logging. Include a new resource group, virtual network, and subnet. Also configure a default node pool and enable network plugin 'azure'.
+East US2リージョンにAKSクラスターを展開するためのTerraform構成を生成します。クラスターはStandard_DS2_v2 VMサイズを使用する3ノードで構成し、RBACを有効化し、Azure Monitorとの統合によるロギングを設定します。新規リソースグループ、仮想ネットワーク、サブネットを含めます。また、デフォルトノードプールを設定し、ネットワークプラグイン「azure」を有効化します。
 ```
 
 > [!NOTE] Click **Open full view** to review the complete Terraform configuration.
@@ -529,7 +532,7 @@ Generate a Terraform configuration to deploy an AKS cluster in the East US regio
 **Prompt:**
 
 ```PowerShell-notab-nocolor
-Create a powershell script to tag the resource group and every resource in it with a tag of "lab" and value of "AI Tour"
+PowerShell スクリプトを作成し、リソース グループとその中のすべてのリソースに「lab」というタグと「AI Tour」という値を付与します。
 ```
 
 #### Azure CLI Script
@@ -537,7 +540,7 @@ Create a powershell script to tag the resource group and every resource in it wi
 **Prompt:**
 
 ```PowerShell-notab-nocolor
-Create an azure cli script to tag the resource group and every resource in it with a tag of "lab" and value of "AI Tour"
+Azure CLI スクリプトを作成し、リソース グループとその中のすべてのリソースに「lab」というタグと「AI Tour」という値を付与します。
 ```
 
 ---
@@ -611,7 +614,7 @@ Navigate to `.github/workflows/package-ai-service.yaml`
 Open GitHub Copilot Chat and prompt:
 
 ```PowerShell-notab-nocolor
-Add security tasks to this workflow
+このワークフローにセキュリティタスクを追加する
 ```
 
 > [!KNOWLEDGE] **Review suggested improvements:**
@@ -628,7 +631,7 @@ Open `src/ai-service/Dockerfile`
 **Prompt:**
 
 ```PowerShell-notab-nocolor
-Review the Dockerfile for the ai-service microservice and suggest security improvements
+ai-serviceマイクロサービスのDockerfileを確認し、セキュリティ改善策を提案してください
 ```
 
 > [!KNOWLEDGE] **Expected improvements:**

@@ -141,7 +141,7 @@ azd env set DEPLOY_AZURE_SERVICE_BUS "true"
 azd env set DEPLOY_AZURE_COSMOSDB "true"
 azd env set AZURE_COSMOSDB_ACCOUNT_KIND "MongoDB"
 azd env set DEPLOY_OBSERVABILITY_TOOLS "false"
-azd env set SOURCE_REGISTRY "ghcr.io/smurawski"
+azd env set SOURCE_REGISTRY "ghcr.io/usepowershell"
 if ($Overrides.Keys -contains '@lab.CloudResourceGroup(ResourceGroup1).Location' ) {
     $zones = $Overrides['@lab.CloudResourceGroup(ResourceGroup1).Location'].zones -join ', '
     azd env set AKS_AVAILABILITY_ZONES $zones

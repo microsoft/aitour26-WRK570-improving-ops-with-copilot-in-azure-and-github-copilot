@@ -17,8 +17,42 @@ on:
 permissions:
   contents: read
   packages: write
+  security-events: write
 
 jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: 'src/ai-service'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Run dependency check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          path: 'src/ai-service'
+          format: 'SARIF'
+          args: >
+            --enableExperimental
+
+      - name: Upload dependency check results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'dependency-check-report.sarif'
+        if: always()
+
   publish-container-image:
     runs-on: ubuntu-latest
 
@@ -66,3 +100,17 @@ jobs:
             org.opencontainers.image.source=${{ github.repositoryUrl }}
             org.opencontainers.image.created=${{ steps.set-variables.outputs.CREATED }}
             org.opencontainers.image.revision=${{ steps.set-variables.outputs.VERSION }}
+
+      - name: Scan container image with Trivy
+        if: github.event_name == 'push'
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ steps.set-variables.outputs.REPOSITORY }}/${{ steps.set-variables.outputs.IMAGE }}:${{ steps.set-variables.outputs.VERSION }}
+          format: 'sarif'
+          output: 'container-scan-results.sarif'
+
+      - name: Upload container scan results to GitHub Security tab
+        if: github.event_name == 'push' && always()
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'container-scan-results.sarif'

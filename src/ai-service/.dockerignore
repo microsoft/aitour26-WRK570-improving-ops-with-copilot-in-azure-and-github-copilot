@@ -1,1 +1,17 @@
 .env
+.env.*
+.git
+.gitignore
+.vscode/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+README.md
+test-ai-service.http

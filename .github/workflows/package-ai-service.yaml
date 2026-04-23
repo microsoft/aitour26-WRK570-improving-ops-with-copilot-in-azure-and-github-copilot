@@ -17,6 +17,7 @@ on:
 permissions:
   contents: read
   packages: write
+  security-events: write
 
 jobs:
   publish-container-image:
@@ -42,6 +43,36 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependency audit tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install pip-audit bandit
+
+      - name: Audit Python dependencies
+        run: pip-audit -r src/ai-service/requirements.txt
+
+      - name: Run Bandit security scan
+        run: bandit -r src/ai-service -x src/ai-service/test-ai-service.http
+
+      - name: Run Trivy filesystem scan
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          scan-type: fs
+          scan-ref: src/ai-service
+          format: sarif
+          output: trivy-fs-results.sarif
+
+      - name: Upload Trivy filesystem scan results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: trivy-fs-results.sarif
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
@@ -66,3 +97,17 @@ jobs:
             org.opencontainers.image.source=${{ github.repositoryUrl }}
             org.opencontainers.image.created=${{ steps.set-variables.outputs.CREATED }}
             org.opencontainers.image.revision=${{ steps.set-variables.outputs.VERSION }}
+
+      - name: Run Trivy image scan
+        if: github.event_name == 'push'
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: ${{ steps.set-variables.outputs.REPOSITORY }}/${{ steps.set-variables.outputs.IMAGE }}:${{ steps.set-variables.outputs.VERSION }}
+          format: sarif
+          output: trivy-image-results.sarif
+
+      - name: Upload Trivy image scan results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() && github.event_name == 'push'
+        with:
+          sarif_file: trivy-image-results.sarif
